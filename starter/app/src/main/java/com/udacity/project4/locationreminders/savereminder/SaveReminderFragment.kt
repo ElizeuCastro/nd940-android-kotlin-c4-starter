@@ -5,6 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
+import androidx.lifecycle.Observer
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
@@ -28,6 +29,12 @@ class SaveReminderFragment : BaseFragment() {
         setDisplayHomeAsUpEnabled(true)
 
         binding.viewModel = viewModel
+
+        viewModel.selectedPOI.observe(viewLifecycleOwner, Observer { poi ->
+            viewModel.reminderSelectedLocationStr.value = poi?.let {
+                poi.name
+            } ?: ""
+        })
 
         return binding.root
     }
