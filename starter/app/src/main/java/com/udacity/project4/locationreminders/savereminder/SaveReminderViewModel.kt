@@ -15,6 +15,7 @@ import kotlinx.coroutines.launch
 
 class SaveReminderViewModel(val app: Application, private val dataSource: ReminderDataSource) :
     BaseViewModel(app) {
+    val reminderId = MutableLiveData<String>()
     val reminderTitle = MutableLiveData<String>()
     val reminderDescription = MutableLiveData<String>()
     val selectedPOI = MutableLiveData<PointOfInterest>()
@@ -28,6 +29,7 @@ class SaveReminderViewModel(val app: Application, private val dataSource: Remind
      * Clear the live data objects to start fresh next time the view model gets called
      */
     fun onClear() {
+        reminderId.value = null
         reminderTitle.value = null
         reminderDescription.value = null
         selectedPOI.value = null
@@ -49,6 +51,7 @@ class SaveReminderViewModel(val app: Application, private val dataSource: Remind
      */
     private fun saveReminder(reminderData: ReminderDataItem) {
         showLoading.value = true
+        reminderId.value = reminderData.id
         viewModelScope.launch {
             dataSource.saveReminder(
                 ReminderDTO(
