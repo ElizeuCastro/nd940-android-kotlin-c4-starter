@@ -24,14 +24,14 @@ class RemindersListViewModelTest {
     @get:Rule
     var mainCoroutineRule = MainCoroutineRule()
 
-    private lateinit var remindersListViewModel: RemindersListViewModel
+    private lateinit var viewModel: RemindersListViewModel
     private lateinit var remindersLocalRepository: FakeDataSource
 
     @Before
     fun setup() {
         stopKoin()
         remindersLocalRepository = FakeDataSource()
-        remindersListViewModel = RemindersListViewModel(
+        viewModel = RemindersListViewModel(
             ApplicationProvider.getApplicationContext(),
             remindersLocalRepository
         )
@@ -41,11 +41,11 @@ class RemindersListViewModelTest {
     fun loadReminders_showNoData_ReminderListIsEmpty() = mainCoroutineRule.runBlockingTest {
 
         // When loading reminders
-        remindersListViewModel.loadReminders()
+        viewModel.loadReminders()
 
         // Then reminders list is empty and no data is shown
-        val reminderList = remindersListViewModel.remindersList.getOrAwaitValue()
-        val noData = remindersListViewModel.showNoData.getOrAwaitValue()
+        val reminderList = viewModel.remindersList.getOrAwaitValue()
+        val noData = viewModel.showNoData.getOrAwaitValue()
         Assert.assertThat(reminderList.size, (`is`(0)))
         Assert.assertThat(noData, (`is`(true)))
 
@@ -57,10 +57,10 @@ class RemindersListViewModelTest {
         remindersLocalRepository.setReturnError(true)
 
         // When loading reminders
-        remindersListViewModel.loadReminders()
+        viewModel.loadReminders()
 
         // Then reminders list is empty and no data is shown
-        val showSnackBar = remindersListViewModel.showSnackBar.getOrAwaitValue()
+        val showSnackBar = viewModel.showSnackBar.getOrAwaitValue()
         Assert.assertThat(showSnackBar, (`is`("Exception getReminder")))
 
     }
@@ -72,16 +72,16 @@ class RemindersListViewModelTest {
         mainCoroutineRule.pauseDispatcher()
 
         // When loading reminders
-        remindersListViewModel.loadReminders()
+        viewModel.loadReminders()
 
         // Then - show loading
-        Assert.assertThat(remindersListViewModel.showLoading.getOrAwaitValue(), (`is`(true)))
+        Assert.assertThat(viewModel.showLoading.getOrAwaitValue(), (`is`(true)))
 
         // Execute pending coroutines
         mainCoroutineRule.resumeDispatcher()
 
         // Then - hide loading
-        Assert.assertThat(remindersListViewModel.showLoading.getOrAwaitValue(), (`is`(false)))
+        Assert.assertThat(viewModel.showLoading.getOrAwaitValue(), (`is`(false)))
 
     }
 
@@ -99,10 +99,10 @@ class RemindersListViewModelTest {
         )
 
         // When loading reminders
-        remindersListViewModel.loadReminders()
+        viewModel.loadReminders()
 
         // Then reminders list is empty and no data is shown
-        val reminderList = remindersListViewModel.remindersList.getOrAwaitValue()
+        val reminderList = viewModel.remindersList.getOrAwaitValue()
         Assert.assertThat(reminderList.size, (`is`(1)))
         Assert.assertThat(reminderList.first().title, (`is`("Central Park")))
         Assert.assertThat(reminderList.first().description, (`is`("")))
