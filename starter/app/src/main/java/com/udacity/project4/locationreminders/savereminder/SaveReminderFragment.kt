@@ -80,17 +80,21 @@ class SaveReminderFragment : BaseFragment() {
         }
 
         binding.saveReminder.setOnClickListener {
-            val title = viewModel.reminderTitle.value
-            val description = viewModel.reminderDescription.value
-            val location = viewModel.reminderSelectedLocationStr.value
-            val latitude = viewModel.latitude.value
-            val longitude = viewModel.longitude.value
+            if (viewModel.selectedPOI.value === null) {
+                viewModel.showErrorMessage.value = (getString(R.string.select_poi))
+            } else {
+                val title = viewModel.reminderTitle.value
+                val description = viewModel.reminderDescription.value
+                val location = viewModel.reminderSelectedLocationStr.value
+                val latitude = viewModel.latitude.value
+                val longitude = viewModel.longitude.value
 
-            val reminderDateItem = ReminderDataItem(
-                title, description, location, latitude, longitude
-            )
-            addGeofence(reminderDateItem.id)
-            viewModel.validateAndSaveReminder(reminderDateItem)
+                val reminderDateItem = ReminderDataItem(
+                    title, description, location, latitude, longitude
+                )
+                addGeofence(reminderDateItem.id)
+                viewModel.validateAndSaveReminder(reminderDateItem)
+            }
         }
     }
 
@@ -187,18 +191,10 @@ class SaveReminderFragment : BaseFragment() {
 
             geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)?.run {
                 addOnSuccessListener {
-                    Toast.makeText(
-                        requireActivity(), "Geofences Added",
-                        Toast.LENGTH_SHORT
-                    )
-                        .show()
-                    Log.d(TAG, geofence.requestId)
+                    Log.d(TAG, "Geofences Added " + geofence.requestId)
                 }
                 addOnFailureListener {
-                    Toast.makeText(
-                        requireActivity(), R.string.geofences_not_added,
-                        Toast.LENGTH_SHORT
-                    ).show()
+                    Log.d(TAG, getString(R.string.geofences_not_added))
                     if ((it.message != null)) {
                         Log.d(TAG, it.message!!)
                     }
