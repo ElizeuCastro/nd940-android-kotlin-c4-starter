@@ -1,6 +1,7 @@
 package com.udacity.project4.locationreminders.savereminder
 
 import android.app.Application
+import android.os.Build
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.android.gms.maps.model.LatLng
@@ -11,21 +12,21 @@ import com.udacity.project4.locationreminders.MainCoroutineRule
 import com.udacity.project4.locationreminders.data.FakeDataSource
 import com.udacity.project4.locationreminders.getOrAwaitValue
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
-
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
-import org.hamcrest.Matchers
 import org.hamcrest.Matchers.`is`
 import org.hamcrest.Matchers.nullValue
-import org.junit.Assert
+import org.junit.Assert.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.koin.core.context.stopKoin
+import org.robolectric.annotation.Config
 
 @ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
+@Config(sdk = [Build.VERSION_CODES.P])
 class SaveReminderViewModelTest {
 
 
@@ -49,7 +50,7 @@ class SaveReminderViewModelTest {
     }
 
     @Test
-    fun validateAndSaveReminder_EmptyTitle() {
+    fun validateEnteredData_ShowErrorForEmptyTitle() {
 
         // Give a reminder with empty title
         val reminderDataItem = ReminderDataItem(
@@ -64,14 +65,14 @@ class SaveReminderViewModelTest {
         viewModel.validateAndSaveReminder(reminderDataItem)
 
         // The snackBar with enter title is shown
-        Assert.assertThat(
+        assertThat(
             viewModel.showSnackBarInt.getOrAwaitValue(),
-            (Matchers.`is`(R.string.err_enter_title))
+            (`is`(R.string.err_enter_title))
         )
     }
 
     @Test
-    fun validateAndSaveReminder_NullTitle() {
+    fun validateEnteredData_ShowErrorForNullTitle() {
 
         // Give a reminder with null title
         val reminderDataItem = ReminderDataItem(
@@ -86,14 +87,14 @@ class SaveReminderViewModelTest {
         viewModel.validateAndSaveReminder(reminderDataItem)
 
         // The snackBar with enter title is shown
-        Assert.assertThat(
+        assertThat(
             viewModel.showSnackBarInt.getOrAwaitValue(),
-            (Matchers.`is`(R.string.err_enter_title))
+            (`is`(R.string.err_enter_title))
         )
     }
 
     @Test
-    fun validateAndSaveReminder_EmptyLocation() {
+    fun validateEnteredData_ShowErrorForEmptyLocation() {
 
         // Give a reminder with empty location
         val reminderDataItem = ReminderDataItem(
@@ -108,14 +109,14 @@ class SaveReminderViewModelTest {
         viewModel.validateAndSaveReminder(reminderDataItem)
 
         // The snackBar with select location message is shown
-        Assert.assertThat(
+        assertThat(
             viewModel.showSnackBarInt.getOrAwaitValue(),
-            (Matchers.`is`(R.string.err_select_location))
+            (`is`(R.string.err_select_location))
         )
     }
 
     @Test
-    fun validateAndSaveReminder_NullLocation() {
+    fun validateEnteredData_ShowErrorForNullLocation() {
 
         // Give a reminder with null location
         val reminderDataItem = ReminderDataItem(
@@ -130,14 +131,14 @@ class SaveReminderViewModelTest {
         viewModel.validateAndSaveReminder(reminderDataItem)
 
         // The snackBar with select location message is shown
-        Assert.assertThat(
+        assertThat(
             viewModel.showSnackBarInt.getOrAwaitValue(),
-            (Matchers.`is`(R.string.err_select_location))
+            (`is`(R.string.err_select_location))
         )
     }
 
     @Test
-    fun validateAndSaveReminder_SaveReminder() = mainCoroutineRule.runBlockingTest {
+    fun saveReminder_ShouldBeSavedCorrectly() = mainCoroutineRule.runBlockingTest {
 
         // Give a reminder
         val reminderDataItem = ReminderDataItem(
@@ -153,26 +154,27 @@ class SaveReminderViewModelTest {
 
 
         // The reminder is saved and saved toast message is shown
-        Assert.assertThat(
+        assertThat(
             viewModel.reminderId.getOrAwaitValue(),
             (`is`(reminderDataItem.id))
         )
-        Assert.assertThat(
+        assertThat(
             viewModel.showToast.getOrAwaitValue(),
-            (`is`(app.getString(R.string.reminder_saved)))
+            (`is`("Reminder Saved !"))
         )
-        Assert.assertThat<NavigationCommand>(
+        assertThat<NavigationCommand>(
             viewModel.navigationCommand.getOrAwaitValue(),
             (`is`(NavigationCommand.Back))
         )
     }
 
     @Test
-    fun validateAndSaveReminder_SaveReminder_Loading() = mainCoroutineRule.runBlockingTest {
+    fun saveReminder_CheckLoading() = mainCoroutineRule.runBlockingTest {
 
         // Pause dispatcher
         mainCoroutineRule.pauseDispatcher()
 
+        // Given a reminder
         val reminderDataItem = ReminderDataItem(
             "Central Park",
             "",
@@ -181,41 +183,67 @@ class SaveReminderViewModelTest {
             73.968285
         )
 
-        // Given Save Reminder
+        // When save reminder
         viewModel.validateAndSaveReminder(reminderDataItem)
 
         // Then - show loading
-        Assert.assertThat(viewModel.showLoading.getOrAwaitValue(), (`is`(true)))
+        assertThat(viewModel.showLoading.getOrAwaitValue(), (`is`(true)))
 
         // Execute pending coroutines
         mainCoroutineRule.resumeDispatcher()
 
         // Then - hide loading
-        Assert.assertThat(viewModel.showLoading.getOrAwaitValue(), (`is`(false)))
+        assertThat(viewModel.showLoading.getOrAwaitValue(), (`is`(false)))
 
     }
 
     @Test
-    fun onClear() {
+    fun onClear_ShouldCleanFieldValues() {
 
+        // Given a reminder
+        val reminderDataItem = ReminderDataItem(
+            "Central Park",
+            "",
+            "Central Park",
+            40.785091,
+            73.968285
+        )
+        viewModel.reminderId.value = reminderDataItem.id
+        viewModel.reminderTitle.value = reminderDataItem.title
+        viewModel.reminderDescription.value = reminderDataItem.description
+        viewModel.selectedPOI.value = PointOfInterest(
+            LatLng(reminderDataItem.latitude!!, reminderDataItem.longitude!!),
+            reminderDataItem.title,
+            reminderDataItem.title
+        )
+        viewModel.latitude.value = reminderDataItem.latitude
+        viewModel.longitude.value = reminderDataItem.longitude
+
+        // When call clear method
         viewModel.onClear()
 
-        Assert.assertThat(viewModel.reminderId.getOrAwaitValue(), nullValue())
-        Assert.assertThat(viewModel.reminderTitle.getOrAwaitValue(), nullValue())
-        Assert.assertThat(viewModel.reminderDescription.getOrAwaitValue(), nullValue())
-        Assert.assertThat(viewModel.selectedPOI.getOrAwaitValue(), nullValue())
-        Assert.assertThat(viewModel.latitude.getOrAwaitValue(), nullValue())
-        Assert.assertThat(viewModel.longitude.getOrAwaitValue(), nullValue())
+        // Then the field values should be reset
+        assertThat(viewModel.reminderId.getOrAwaitValue(), nullValue())
+        assertThat(viewModel.reminderTitle.getOrAwaitValue(), nullValue())
+        assertThat(viewModel.reminderDescription.getOrAwaitValue(), nullValue())
+        assertThat(viewModel.selectedPOI.getOrAwaitValue(), nullValue())
+        assertThat(viewModel.latitude.getOrAwaitValue(), nullValue())
+        assertThat(viewModel.longitude.getOrAwaitValue(), nullValue())
+        assertThat(viewModel.reminderSelectedLocationStr.getOrAwaitValue(), (`is`("")))
     }
 
     @Test
     fun reminder_selected_location_str() {
 
         // Given selected POI
-        viewModel.selectedPOI.value = PointOfInterest(LatLng(40.785091, 73.968285), "", "Central Park")
+        viewModel.selectedPOI.value =
+            PointOfInterest(LatLng(40.785091, 73.968285), "", "Central Park")
 
         // Then transform location name
-        Assert.assertThat(viewModel.reminderSelectedLocationStr.getOrAwaitValue(), (`is`("Central Park")))
+        assertThat(
+            viewModel.reminderSelectedLocationStr.getOrAwaitValue(),
+            (`is`("Central Park"))
+        )
     }
 
 

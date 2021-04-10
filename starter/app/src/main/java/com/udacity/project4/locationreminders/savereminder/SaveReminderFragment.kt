@@ -236,19 +236,16 @@ class SaveReminderFragment : BaseFragment() {
                     grantResults[BACKGROUND_LOCATION_PERMISSION_INDEX] == PackageManager.PERMISSION_DENIED
                     )
         ) {
-            // Permission denied.
             Snackbar.make(
                 binding.root,
                 R.string.permission_denied_explanation, Snackbar.LENGTH_INDEFINITE
-            )
-                .setAction(R.string.settings) {
-                    // Displays App settings screen.
-                    startActivity(Intent().apply {
-                        action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
-                        data = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
-                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                    })
-                }.show()
+            ).setAction(R.string.settings) {
+                startActivity(Intent().apply {
+                    action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                    data = Uri.fromParts("package", BuildConfig.APPLICATION_ID, null)
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                })
+            }.show()
         } else {
             checkDeviceLocationSettingsAndStartGeofence()
         }
@@ -256,7 +253,6 @@ class SaveReminderFragment : BaseFragment() {
 
     override fun onDestroy() {
         super.onDestroy()
-        //make sure to clear the view model after destroy, as it's a single view model.
         viewModel.onClear()
     }
 }

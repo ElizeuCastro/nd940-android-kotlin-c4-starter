@@ -6,7 +6,7 @@ apply plugin: 'kotlin-android-extensions'
 
 android {
     compileSdkVersion rootProject.compileSdkVersion
-    buildToolsVersion "29.0.2"
+    buildToolsVersion "30.0.3"
 
     defaultConfig {
         applicationId "com.udacity.project4"
@@ -27,11 +27,6 @@ android {
         includeAndroidResources = true
         returnDefaultValues = true
     }
-
-    //dataBinding {
-    //    enabled = true
-    //    enabledForTests = true
-    //}
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -41,6 +36,9 @@ android {
     }
     kotlinOptions {
         jvmTarget = '1.8'
+    }
+    packagingOptions {
+        pickFirst "META-INF/*"
     }
 }
 
@@ -55,14 +53,13 @@ dependencies {
     implementation "com.google.android.material:material:$materialVersion"
     implementation "androidx.recyclerview:recyclerview:$recyclerViewVersion"
     implementation "androidx.constraintlayout:constraintlayout:$constraintVersion"
+    implementation "androidx.multidex:multidex:$multidexVersion"
 
-    implementation 'com.google.code.gson:gson:2.8.5'
+    implementation 'com.google.code.gson:gson:2.8.6'
 
     // Architecture Components
-    //Navigation dependencies
     implementation 'androidx.appcompat:appcompat:1.2.0'
-    implementation 'androidx.constraintlayout:constraintlayout:2.0.0-rc1'
-    kapt "androidx.lifecycle:lifecycle-compiler:$archLifecycleVersion"
+    kapt "androidx.lifecycle:lifecycle-common-java8:$archLifecycleVersion"
     implementation "androidx.lifecycle:lifecycle-extensions:$archLifecycleVersion"
     implementation "androidx.lifecycle:lifecycle-viewmodel-ktx:$archLifecycleVersion"
     implementation "androidx.lifecycle:lifecycle-extensions:$archLifecycleVersion"
@@ -71,15 +68,18 @@ dependencies {
     implementation "androidx.navigation:navigation-ui-ktx:$navigationVersion"
     implementation "androidx.test.espresso:espresso-idling-resource:$espressoVersion"
 
-    //Room dependencies
+    // Room dependencies
     implementation "androidx.room:room-ktx:$roomVersion"
     implementation "androidx.room:room-runtime:$roomVersion"
     kapt "androidx.room:room-compiler:$roomVersion"
 
-    //Coroutines Dependencies
+    // Firebase Auth
+    implementation "com.firebaseui:firebase-ui-auth:$firebaseAuthVersion"
+
+    // Coroutines Dependencies
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion"
 
-    //Koin
+    // Koin
     implementation "org.koin:koin-android:$koinVersion"
     implementation "org.koin:koin-androidx-viewmodel:$koinVersion"
 
@@ -110,25 +110,19 @@ dependencies {
     androidTestImplementation "androidx.test.espresso:espresso-contrib:$espressoVersion"
     androidTestImplementation "androidx.test.espresso:espresso-intents:$espressoVersion"
     androidTestImplementation "androidx.test.espresso.idling:idling-concurrent:$espressoVersion"
-    androidTestImplementation "junit:junit:$junitVersion"
+    androidTestImplementation "com.google.truth:truth:$truthVersion"
+
     // Once https://issuetracker.google.com/127986458 is fixed this can be testImplementation
-    implementation "androidx.fragment:fragment-testing:$fragmentVersion"
+    debugImplementation "androidx.fragment:fragment-testing:$fragmentVersion"
     implementation "androidx.test:core:$androidXTestCoreVersion"
-    implementation "androidx.fragment:fragment:$fragmentVersion"
+    implementation "androidx.fragment:fragment-ktx:$fragmentVersion"
     androidTestImplementation "org.mockito:mockito-core:$mockitoVersion"
     androidTestImplementation "com.linkedin.dexmaker:dexmaker-mockito:$dexMakerVersion"
     androidTestImplementation('org.koin:koin-test:2.0.1') { exclude group: 'org.mockito' }
 
-    //Maps & Geofencing
-    implementation "com.google.android.gms:play-services-location:$playServicesVersion"
-    implementation "com.google.android.gms:play-services-maps:$playServicesVersion"
-
-    // Import the Firebase
-    implementation 'com.firebaseui:firebase-ui-auth:5.0.0'
-
-    implementation 'com.android.support:multidex:1.0.3'
-
-
+    // Maps & Geofencing
+    implementation "com.google.android.gms:play-services-location:$playServicesLocationVersion"
+    implementation "com.google.android.gms:play-services-maps:$playServicesMapsVersion"
 }
 
 apply plugin: 'com.google.gms.google-services'

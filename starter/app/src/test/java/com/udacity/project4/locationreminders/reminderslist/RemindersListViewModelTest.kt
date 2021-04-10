@@ -1,5 +1,7 @@
 package com.udacity.project4.locationreminders.reminderslist
 
+import android.os.Build
+import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.udacity.project4.locationreminders.MainCoroutineRule
@@ -9,20 +11,24 @@ import com.udacity.project4.locationreminders.getOrAwaitValue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.runBlockingTest
 import org.hamcrest.Matchers.`is`
-import org.junit.Assert
+import org.junit.Assert.assertThat
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.koin.core.context.stopKoin
+import org.robolectric.annotation.Config
 
 @RunWith(AndroidJUnit4::class)
 @ExperimentalCoroutinesApi
+@Config(sdk = [Build.VERSION_CODES.P])
 class RemindersListViewModelTest {
 
-    @ExperimentalCoroutinesApi
     @get:Rule
     var mainCoroutineRule = MainCoroutineRule()
+
+    @get: Rule
+    var instantExecutorRule = InstantTaskExecutorRule()
 
     private lateinit var viewModel: RemindersListViewModel
     private lateinit var remindersLocalRepository: FakeDataSource
@@ -38,7 +44,10 @@ class RemindersListViewModelTest {
     }
 
     @Test
-    fun loadReminders_showNoData_ReminderListIsEmpty() = mainCoroutineRule.runBlockingTest {
+    fun invalidateShowNoData_shouldShowNoData() = mainCoroutineRule.runBlockingTest {
+
+        // Given no reminders
+        remindersLocalRepository.deleteAllReminders()
 
         // When loading reminders
         viewModel.loadReminders()
@@ -46,13 +55,13 @@ class RemindersListViewModelTest {
         // Then reminders list is empty and no data is shown
         val reminderList = viewModel.remindersList.getOrAwaitValue()
         val noData = viewModel.showNoData.getOrAwaitValue()
-        Assert.assertThat(reminderList.size, (`is`(0)))
-        Assert.assertThat(noData, (`is`(true)))
+        assertThat(reminderList.size, (`is`(0)))
+        assertThat(noData, (`is`(true)))
 
     }
 
     @Test
-    fun loadReminders_ShowSnackBarError() = mainCoroutineRule.runBlockingTest {
+    fun unavailableReminder_ShouldShowSnackBarError() = mainCoroutineRule.runBlockingTest {
         //Given any Error
         remindersLocalRepository.setReturnError(true)
 
@@ -61,33 +70,36 @@ class RemindersListViewModelTest {
 
         // Then reminders list is empty and no data is shown
         val showSnackBar = viewModel.showSnackBar.getOrAwaitValue()
-        Assert.assertThat(showSnackBar, (`is`("Exception getReminder")))
+        assertThat(showSnackBar, (`is`("Exception getReminder")))
 
     }
 
     @Test
-    fun loadReminders_Loading() = mainCoroutineRule.runBlockingTest {
+    fun loadReminders_CheckLoading() = mainCoroutineRule.runBlockingTest {
 
         // Pause dispatcher
         mainCoroutineRule.pauseDispatcher()
+
+        // Given no reminders
+        remindersLocalRepository.deleteAllReminders()
 
         // When loading reminders
         viewModel.loadReminders()
 
         // Then - show loading
-        Assert.assertThat(viewModel.showLoading.getOrAwaitValue(), (`is`(true)))
+        assertThat(viewModel.showLoading.getOrAwaitValue(), (`is`(true)))
 
         // Execute pending coroutines
         mainCoroutineRule.resumeDispatcher()
 
         // Then - hide loading
-        Assert.assertThat(viewModel.showLoading.getOrAwaitValue(), (`is`(false)))
+        assertThat(viewModel.showLoading.getOrAwaitValue(), (`is`(false)))
 
     }
 
     @Test
-    fun loadReminders_WithData() = mainCoroutineRule.runBlockingTest {
-        // Given I have some reminders
+    fun loadReminders_shouldShowDataCorrectly() = mainCoroutineRule.runBlockingTest {
+        // Given some reminders
         remindersLocalRepository.saveReminder(
             ReminderDTO(
                 "Central Park",
@@ -103,12 +115,12 @@ class RemindersListViewModelTest {
 
         // Then reminders list is empty and no data is shown
         val reminderList = viewModel.remindersList.getOrAwaitValue()
-        Assert.assertThat(reminderList.size, (`is`(1)))
-        Assert.assertThat(reminderList.first().title, (`is`("Central Park")))
-        Assert.assertThat(reminderList.first().description, (`is`("")))
-        Assert.assertThat(reminderList.first().location, (`is`("Central Park")))
-        Assert.assertThat(reminderList.first().latitude, (`is`(40.785091)))
-        Assert.assertThat(reminderList.first().longitude, (`is`(73.968285)))
+        assertThat(reminderList.size, (`is`(1)))
+        assertThat(reminderList.first().title, (`is`("Central Park")))
+        assertThat(reminderList.first().description, (`is`("")))
+        assertThat(reminderList.first().location, (`is`("Central Park")))
+        assertThat(reminderList.first().latitude, (`is`(40.785091)))
+        assertThat(reminderList.first().longitude, (`is`(73.968285)))
     }
 
 }

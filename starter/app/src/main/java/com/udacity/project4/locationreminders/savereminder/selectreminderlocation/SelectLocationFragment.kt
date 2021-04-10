@@ -18,10 +18,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MapStyleOptions
-import com.google.android.gms.maps.model.MarkerOptions
-import com.google.android.gms.maps.model.PointOfInterest
+import com.google.android.gms.maps.model.*
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
@@ -29,6 +26,7 @@ import com.udacity.project4.databinding.FragmentSelectLocationBinding
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
+import java.util.*
 
 class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
@@ -111,6 +109,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
         setMapStyle(map)
         setPoiClick(map)
+        setMapLongClick(map)
 
         enableMyLocation()
     }
@@ -138,6 +137,32 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             )
             poiMarker.showInfoWindow()
             locationSelected(poi)
+        }
+    }
+
+    private fun setMapLongClick(map: GoogleMap) {
+        map.setOnMapLongClickListener { latLng ->
+            val snippet = String.format(
+                Locale.getDefault(),
+                "Lat: %1$.5f, Long: %2$.5f",
+                latLng.latitude,
+                latLng.longitude
+            )
+            map.addMarker(
+                MarkerOptions()
+                    .position(latLng)
+                    .title(getString(R.string.dropped_pin))
+                    .snippet(snippet)
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE))
+            )
+            val pinText = getString(R.string.dropped_pin)
+            val location = String.format(
+                Locale.getDefault(),
+                "%s (%s)",
+                pinText,
+                snippet
+            )
+            locationSelected(PointOfInterest(latLng, location, location))
         }
     }
 
